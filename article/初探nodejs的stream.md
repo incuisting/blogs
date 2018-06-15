@@ -48,9 +48,9 @@ server.listen(8000);
 当服务器获得请求时，它将使用异步方法 `fs.readFile` 读取大文件并返回给客户端。很简单的几行代码，看上去其表现不会跟一大堆事件循环或者其他复杂的代码那样。
 那么，让我们运行服务器，并在请求这个文件时监视内存，看看会发生什么。
 当我启动服务时，它开始处于一个正常的内存量，**8.7 MB**：
-![initMermory](https://user-gold-cdn.xitu.io/2018/6/3/163c464df0dfa0b1?w=800&h=422&f=png&s=77976)
+![initMermory](../pic/streamImg1.jpg)
 然后我发起请求，注意看内存用量发生了什么变化：
-![gaintMermory](https://user-gold-cdn.xitu.io/2018/6/3/163c4659c5e32fb7?w=800&h=615&f=gif&s=3447889)
+![gaintMermory](../pic/streamImg2.gif)
 内存用量居然涨到了 **434.8 MB**。
 我们基本上把整个 `big.file` 的内容都放在内存中了，然后再把它写到响应对象中。这是非常低效的。
 HTTP 响应对象（上面的代码中的 res ）也是可写的流。这意味着如果我们有一个代表 `big.file` 的内容的可读流，我们可以直接让这两个对象通过 `pipe` 连接(pipe 在文章后半会将到)，不用耗费 400 MB 的内存就能实现相同的功能。
@@ -71,7 +71,7 @@ server.listen(8000);
 
 现在，当你再次发出请求，会发生一个神奇的事情（看内存消耗）：
 
-![lessMermory](https://user-gold-cdn.xitu.io/2018/6/3/163c4686f3add6a9?w=900&h=692&f=gif&s=4412809)
+![lessMermory](../pic/streamImg3.gif)
 发生了什么？  
 当客户端请求这个大文件时，我们每次流式传输一个**块**，这意味着我们不会在内存中缓存该文件。内存的使用量大约增长了**25 MB**，就是这样。
 `Stream流`它可以帮我们用**很小**得内存去读取一个**大文件**，对于内存就是 rmb 的服务器，`stream流`可以说就是一个核弹。那么接下来就具体看看它怎么用吧
@@ -105,7 +105,7 @@ console.log(data);
 ```
 
 调用 `fs.createReadStream` 会为你生成一个`可读流`。最初这个流是**静止**的，当你去**监听**`data` 事件，并给它一个`callback` 。这个流就**开始流动**。数据按照**默认 64k**的速度塞进我们给它的那个`callback`里。(如果要改变读取速率可以参考
-[nodejs 官方文档](https://user-gold-cdn.xitu.io/2018/6/3/163c4b6231debcdb)设置 highWaterMark 的值)
+[nodejs 官方文档](https://nodejs.org/dist/latest-v10.x/docs/api/fs.html#fs_fs_createreadstream_path_options)设置 highWaterMark 的值)
 当数据被都**读取完**之后，流会`emit` 一个`end`事件，在上面的代码块中，我们会在流读完之后得到一个把全部内容打印出的 log
 
 还有另外一种读取的方式，就是**监听**`readable` 事件，然后调用流的`read()`方法，数据就可以被源源不断的读出，直到读完
