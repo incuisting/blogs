@@ -1,3 +1,5 @@
+# 写一个自己的Promise
+****
 相信 Promise 已经是现代大部分前端处理异步的方式了。但是 Promise 天天都在用，它内部到底做了什么呢？那么就按照[Promises/A+规范](https://promisesaplus.com/)做一个
 ![home](https://user-gold-cdn.xitu.io/2018/5/20/1637d4b8653387fe?w=375&h=337&f=jpeg&s=15694)
 

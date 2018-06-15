@@ -1,3 +1,5 @@
+# 初探nodejs的stream
+****
 ### 什么是流?
 
 `Stream(流)` 就和它得名字一样，我们可以把它想象成像水流，从一个地方流向另外一个地方。按照一定速率，有快有慢。而 Nodejs 里流则是将数据以一定的速率从原文件流向目标文件。它最基本的原理，按照官方对它的描述，它是一个发布订阅，因为它继承自`EventEmitter`,然后再去实现出了`Readable(可读流)`,`Writeable(可写流)`,`Duplex(双工流,既可读又可写)`。其中`Readable(可读流)`使你可以从一个文件读数据 而`Writeable(可写流)`则是允许你向目标文件写入数据。Nodejs 那么最常见的流的例子就是来自`http server`，它的`request` 就是一个`Readable(可读流)`而它的`response`则是一个`Writeable(可写流)`
