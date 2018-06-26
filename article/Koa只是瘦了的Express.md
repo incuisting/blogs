@@ -113,8 +113,7 @@ app.listen(3000)
 既然express 和koa出来的结果都是一样的，那么不是没有区别了吗？    
 当然不是，重头戏在异步    
 ```JavaScript
-let Koa = require('koa');
-let app = new Koa();
+//省略引入
 function log() {
   return new Promise((resolve,reject)=>{
     setTimeout(() => {
@@ -139,5 +138,70 @@ app.use((ctx, next) => {
   next();
   console.log(6);
 })
-app.listen(3000);
+//省略监听
+```    
+上面这部分代码用express和koa分别去执行(express执行的时候参数ctx需要换成req,res)    
+得到的结果分别如下：    
+express：    
+```JavaScript
+1
+3
+2
+123
+5
+6
+4
+```   
+koa:   
+```JavaScript
+1
+3
+123
+5
+6
+4
+2
+```   
+一个明显的差异，koa的async/await是生效的，而express的async/await却不生效没有去等待异步执行就是直接跳出来执行了console.log(2)    
+为什么会造成这样的差异，还是要从express和koa的next的执行原理入手    
+接下去简单的缕一缕，先把express的代码放飞一下自我改成如下样子    
+```JavaScript
+function app() {
+}
+app.routes = [];
+app.use = function (fn) {
+  app.routes.push(fn);
+}
+function log() {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      resolve('123');
+    }, 1000);
+  })
+}
+app.use(async (req, res, next) => {
+  console.log(1);
+  await next(); 
+  console.log(2);
+})
+app.use(async (req, res, next) => {
+  console.log(3);
+  let r = await log();
+  console.log(r);
+  next();
+  console.log(4);
+})
+app.use((req, res, next) => {
+  console.log(5);
+  next();
+  console.log(6);
+})
+let index = 0;
+// koa有个特点 中间件内部会处理一下 把他都变成promise
+function next() {
+  if (app.routes.length === index) return
+  let route = app.routes[index++];
+  route({}, {}, () => next());
+}
+next();
 ```
