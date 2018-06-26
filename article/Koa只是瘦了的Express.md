@@ -50,5 +50,94 @@ app.use((ctx,next) => {
 不过koa和express中间件的处理的最大差异并不是参数上，而是二者在对异步的处理上    
 举一个简单的例子    
 ```javascript
+let express = require('express');
 
+let app = express();
+app.use((req,res,next) => {
+  console.log(1);
+  next();
+  console.log(2);
+})
+app.use((req, res, next) => {
+  console.log(3);
+  next();
+  console.log(4);
+})
+app.use((req, res, next) => {
+  console.log(5);
+  next();
+  console.log(6);
+})
+app.listen(3000);
+```    
+在koa中只要把`use`的参数修改一下就可以了    
+```JavaScript
+app.use( (ctx,next)=>{
+  console.log(1);
+  next();
+  console.log(2);
+});
+//省略其他相同代码
+```
+这段代码最后的输出结果两个都是一样    
+```JavaScript
+1
+3
+5
+6
+4
+2
+```   
+为什么会这样输出?    
+其实上面的代码等同于下面这样    
+```JavaScript
+let Koa = require('koa');
+
+let app = new Koa();
+app.use((ctx,next) => {
+  console.log(1);
+  (ctx,next) => {
+    console.log(3);
+    (ctx, next) => {
+      console.log(5);
+      next();
+      console.log(6);
+    }
+    console.log(4);
+  }
+  console.log(2);
+})
+app.listen(3000)
+```   
+在前一个中间件中调用next()就相当于直接调用下一个中间件，直到最后一个中间件。所以为什么会是`1 3 5 6 4 2` 应该一样就看出来了    
+既然express 和koa出来的结果都是一样的，那么不是没有区别了吗？    
+不然，重头戏在异步    
+```JavaScript
+let Koa = require('koa');
+let app = new Koa();
+function log() {
+  return new Promise((resolve,reject)=>{
+    setTimeout(() => {
+      resolve('123');
+    }, 1000);
+  })
+}
+app.use( async(ctx,next)=>{
+  console.log(1);
+  await next(); 
+  console.log(2);
+});
+app.use(async (ctx, next) => {
+  console.log(3);
+  let r = await log();
+  console.log(r);
+  next();
+  console.log(4);
+});
+app.use((ctx, next) => {
+  console.log(5);
+  next();
+  console.log(6);
+})
+app.listen(3000);
 ```
