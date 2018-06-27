@@ -162,46 +162,99 @@ koa:
 4
 2
 ```   
-一个明显的差异，koa的async/await是生效的，而express的async/await却不生效没有去等待异步执行就是直接跳出来执行了console.log(2)    
+一个明显的差异，koa的async/await是生效的，而express的async/await却不生效,直接跳出过执行了console.log(2),并没有去等待异步的执行。    
 为什么会造成这样的差异，还是要从express和koa的next的执行原理入手    
-接下去简单的缕一缕，先把express的代码放飞一下自我改成如下样子    
+接下去简单的缕一缕，先把代码放飞一下自我改成如下样子:    
 ```JavaScript
-function app() {
+//把原先的express用对象替换
+let app = {}
+//存放中间件的回调函数
+app.routes = []
+//提供use方法模拟最基本的功能
+app.use = function(fn) {
+  //每次调用use就把传入的回调函数推到routes数组尾部
+  app.routes.push(fn)
 }
-app.routes = [];
-app.use = function (fn) {
-  app.routes.push(fn);
-}
+//异步log
 function log() {
   return new Promise((resolve, reject) => {
     setTimeout(() => {
-      resolve('123');
-    }, 1000);
+      resolve('123')
+    }, 1000)
   })
 }
+//开始调用
 app.use(async (req, res, next) => {
-  console.log(1);
-  await next(); 
-  console.log(2);
+  console.log(1)
+  await next()
+  console.log(2)
 })
 app.use(async (req, res, next) => {
-  console.log(3);
-  let r = await log();
-  console.log(r);
-  next();
-  console.log(4);
+  console.log(3)
+  let r = await log()
+  console.log(r)
+  next()
+  console.log(4)
 })
 app.use((req, res, next) => {
-  console.log(5);
-  next();
-  console.log(6);
+  console.log(5)
+  next()
+  console.log(6)
 })
-let index = 0;
-// koa有个特点 中间件内部会处理一下 把他都变成promise
+
+let index = 0
+//这个next只有最最基础的功能
+function next() {
+  // 最后一个next调用之后就直接跳出了递归
+  if (app.routes.length === index) return
+  //取出routes里当前index的中间件回调，然后把index + 1
+  let route = app.routes[index++]
+  //执行这个中间件回调，为了方便这里req,res就都传空对象了，最后把next自己再传入
+  route({}, {}, () => next())
+}
+//执行next
+next()
+```    
+运行一下代码，得到了和express允许相同的结果：`1 3 2 123 5 6 4`     
+可以来分析一下为什么会造成await不等待，首先await会去等待的是一个Promise，那么我们这个next()执行后并没有返回值，所以 await next() 的话，相当与await undefined。嗯哼，undefined 还await个蛋呀，当然过啦。那么要让express实现和koa一样的异步处理也很简单，对next函数稍加修改    
+```JavaScript
+//重点修改next方法
 function next() {
   if (app.routes.length === index) return
-  let route = app.routes[index++];
-  route({}, {}, () => next());
+  let route = app.routes[index++]
+  // 只要把中间件的回调函数return出去就可以了
+  return route({}, {}, () => next())
 }
-next();
-```
+```    
+执行一下,喜得：    
+```javascript
+1
+3
+123
+5
+6
+4
+2
+```    
+那么原因是什么，加了一个return就完事了？   
+首先看一下第一次return的是一个什么东西    
+```javascript
+app.use(async (req, res, next) => {
+  console.log(1)
+  await next()
+  console.log(2)
+})
+```    
+原先不加return的时候这段代码的next 执行后没有返回值所以默认返回的是undefined，加了return之后这个next的返回是：    
+```javascript
+async (req, res, next) => {
+  console.log(3)
+  let r = await log()
+  console.log(r)
+  next()
+  console.log(4)
+}
+```   
+是一个async/await函数，这样一来就成了.    
+## 总结   
+koa对于express我认为最大的区别在于丢弃了原先express很多的中间件集成，而改为第三方引入，使用起来更加灵活，毕竟并不是express里所有集成的中间件都有用.而且中间件对异步的友好程度也好于express。之后有时间再写一个koa简单实战，加深对koa的认识。
