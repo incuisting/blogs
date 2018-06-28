@@ -4,12 +4,17 @@ let http = require('http')
 let server = http.createServer()
 //监听request事件，也就是收到请求的时候
 server.on('request', function(req, res) {
-  //响应体里写入hello world，回复给浏览器
+  //获取请求的方法
+  console.log(req.method)
+  //获取请求的url
+  console.log(req.url)
+  //获取http协议版本
+  console.log(req.httpVersion)
+  // 拿到的是请求头对象，你要取里面的具体的参数可以通过key来取(是小写的)
+  console.log(req.headers['user-agent'])
   res.writeHead(200, {
-    a: '1',
-    b: '2'
+    'Content-Type': 'text/plain;charset=utf-8'
   })
-  res.setHeader('Content-Type', 'text/plain;charset=utf-8')
   res.end('你好')
 })
 //服务在本地3000端口监听
