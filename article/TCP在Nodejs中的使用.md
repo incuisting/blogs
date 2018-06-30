@@ -42,8 +42,8 @@ server.on('connection', function(socket) {
 ![交互2](../pic/TCP4.png)    
 确实输出了`哈哈`，`嘿嘿`   
 那么既然打开了服务，那么如何关闭服务呢？   
-net模块提供了两种方式去关闭服务    
-1. close()    
+net模块提供了两种方式去关闭服务:    
+#### 1. close()    
 ```javascript
 //省略引入代码
 server.on('connection', function(socket) {
@@ -63,7 +63,7 @@ server.on('close', function() {
 })
 //省略监听代码
 ```    
-服务会在一次输入后关闭
+服务会在一次输入后关闭    
 ![第一次输入](../pic/TCP5.png)    
 服务端成功打印出输入的内容    
 ![内容](../pic/TCP7.png)    
@@ -71,9 +71,10 @@ server.on('close', function() {
 ![拒绝](../pic/TCP6.png)    
 服务被拒绝了，因为服务已经关闭了   
 ![log](../pic/TCP12.png)    
-控制台打印出了close事件的log
-用close去关闭服务的特性是，触发之后将同时会触发close事件。不会接受新的请求，但是当前连接可以继续发生消息。
-2. unref()    
+关闭当前的连接后控制台打印出了close事件的log
+用close去关闭服务的特性是，触发之后将同时会触发close事件。不会接受新的请求，但是当前连接可以继续发生消息。    
+
+#### 2. unref()    
 ```javascript
 //省略引入代码
 server.on('connection', function(socket) {
@@ -101,8 +102,8 @@ server.on('close', function() {
 ![log](../pic/TCP10.png)    
 123和456都被打印了出来，而且现在两个服务都还是处于连接状态，可以继续输入。当我们把两个窗口都关闭之后    
 ![cancel](../pic/TCP11.png)    
-程序退出了。这就是unref的特性，只有当所有的客户端都关闭了之后，才会退出服务端    
+程序退出了。这就是unref的特性，只有当所有的客户端都关闭了之后，才会退出服务端,而且它不会触发`close`事件。    
 
-
+****
 不过除此之外，服务端也可以通过直接调用socket.end()直接关闭服务端    
 更多API可以参考[net模块](https://nodejs.org/dist/latest-v10.x/docs/api/net.html)
