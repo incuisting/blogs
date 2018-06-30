@@ -1,6 +1,6 @@
 Node中的http模块可以快速为我们提供一个http服务。    
 这篇文章就来摸一摸它那些常用API的用法    
-先起一个最基础的服务Hello World一下：    
+先起一个最基础的服务**Hello World**一下：    
 ```javascript
 //引入http模块
 let http = require('http')
@@ -19,7 +19,7 @@ server.listen(3000, function() {
 ```    
 运行上述代码，然后打开浏览器`localhost:3000`    
 ![init](../pic/http1.png)    
-那么如果把我hello world 改成 你好：    
+那么如果把我**hello world** 改成 **你好**：    
 ```javascript
 server.on('request', function(req, res) {
   //响应体里写入hello world，回复给浏览器
@@ -37,7 +37,7 @@ server.on('request', function(req, res) {
 })
 ```   
 ![header](../pic/http3.png)    
-通过setHeader的方式告诉浏览器需要被解析的编码格式，不过设置响应头还可以通过writeHead的方式设置：    
+通过`setHeader`的方式告诉浏览器需要被解析的编码格式，不过设置响应头还可以通过`writeHead`的方式设置：    
 ```javascript
 server.on('request', function(req, res) {
   res.writeHead(200,{
@@ -46,10 +46,10 @@ server.on('request', function(req, res) {
   res.end('你好')
 })
 ```   
-setHeader和writeHead区别在于，设置多个请求头的时候，setHeader由于一次只能设置一个所以需要而且允许被多次调用，writeHead只能调用一次。而且如果你调用了writeHead,在此之后你还要调用了setHeader就直接报错了，因为writeHead之后就不允许再设置头了。所以一般会建议使用setHeader比较灵活一些.   
+`setHeader`和`writeHead`区别在于，设置多个请求头的时候，`setHeader`由于一次只能设置一个所以需要而且允许被多次调用，`writeHead`只能调用一次。而且如果你调用了`writeHead`,在此之后你还要调用了`setHeader`就直接报错了，因为`writeHead`之后就不允许再设置头了。所以一般会建议使用`setHeader`比较灵活一些.   
 更多API可以参考[官方文档](https://nodejs.org/dist/latest-v10.x/docs/api/http.html#http_class_http_serverresponse)     
 
-接下去再来讲讲另外一个参数req 也就是request，请求。req只要你合理调用API可以获得一切你想知道的关于请求的信息    
+接下去再来讲讲另外一个参数`req` 也就是`request`，请求。`req`只要你合理调用API可以获得一切你想知道的关于请求的信息    
 比如：
 ```javascript
 server.on('request', function(req, res) {
