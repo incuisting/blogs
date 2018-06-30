@@ -3,7 +3,7 @@
 npm install koa --save
 ```      
 先安装一下    
-起个国际惯例的*hello world*    
+起个国际惯例的**hello world**    
 ```JavaScript
 const Koa = require('koa');
 const app = new Koa();
@@ -47,7 +47,7 @@ app.use((ctx,next) => {
 });
 ```    
 而到了koa减少到只有ctx 和next,因为koa把Node中的request 和response 对象都封装到了ctx.req和ctx.res里，同时koa自身也封装了request 和response,可以通过ctx.request和ctx.response来访问他们的API，也可以直接具体方法在ctx下的别名去调用具体可以看[官方文档](https://koa.bootcss.com/)上的用法      
-不过koa和express中间件的处理的最大差异并不是参数上，而是二者在*对异步的处理*上    
+不过koa和express中间件的处理的最大差异并不是参数上，而是二者在**对异步的处理**上    
 举一个简单的例子    
 ```javascript
 let express = require('express');
@@ -163,7 +163,7 @@ app.use((ctx, next) => {
 4
 2
 ```   
-一个明显的差异，*koa的async/await是生效的*，而*express的async/await却不生效*,直接跳出过执行了`console.log(2)`,并没有去等待异步的执行。    
+一个明显的差异，**koa的async/await是生效的**，而**express的async/await却不生效**,直接跳出过执行了`console.log(2)`,并没有去等待异步的执行。    
 为什么会造成这样的差异，还是要从express和koa的`next`的执行思路入手    
 接下去简单的缕一缕，先把代码放飞一下自我改成如下样子:    
 ```JavaScript
@@ -217,7 +217,7 @@ function next() {
 next()
 ```    
 运行一下代码，得到了和express允许相同的结果：`1 3 2 123 5 6 4`     
-可以来分析一下为什么会造成await不等待，首先await会去等待的是一个Promise或者async函数，那么我们这个next()执行后并没有返回值，所以 await next() 的话，相当与*await undefined*。嗯哼，undefined 还await个蛋呀，当然过啦。那么要让express实现和koa一样的异步处理也很简单，对next函数稍加修改    
+可以来分析一下为什么会造成await不等待，首先await会去等待的是一个Promise或者async函数，那么我们这个next()执行后并没有返回值，所以 await next() 的话，相当与**await undefined**。嗯哼，undefined 还await个蛋呀，当然过啦。那么要让express实现和koa一样的异步处理也很简单，对next函数稍加修改    
 ```JavaScript
 //重点修改next方法
 function next() {
@@ -256,6 +256,6 @@ async (req, res, next) => {
   console.log(4)
 }
 ```   
-是一个*async/await*函数，这样一来就成了.    
+是一个**async/await**函数，这样一来就成了.    
 ## 总结   
 目前理解还是比较粗浅，后续会进行深入的使用和分析
