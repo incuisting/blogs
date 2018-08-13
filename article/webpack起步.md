@@ -17,4 +17,38 @@ webpack核心概念一览：
 - Plugin：扩展插件，在 Webpack 构建流程中的特定时机注入扩展逻辑来改变构建结果或做你想要的事情。    
 - Output：输出结果，在 Webpack 经过一系列处理并得出最终想要的代码后输出结果。     
 
-webpack的常规流程一般就是这样:
+webpack的常规流程一般就是这样:   
+<>   
+
+
+初始化一个项目：   
+```javascript
+mkdir webpackBegin
+cd webpackBegin
+npm init -y
+```   
+把webpack安上：   
+```javascript
+npm install webpack webpack-cli -D
+```   
+创建webpack的配置文件和相关的文件：   
+```javascript
+mkdir src
+cd src
+touch index.js
+touch hello.js
+touch webpack.config.js
+```   
+编辑webpack.config.js添加基础的配置：   
+```javascript
+const path = require('path')
+module.export = {
+    entry:'./src/index.js',
+    output:{
+        path:path.resolve(__dirname,'dist'),
+        filename:'bundle.js'
+    }
+}
+```
+
+
