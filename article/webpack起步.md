@@ -36,7 +36,7 @@ npm install webpack webpack-cli -D
 mkdir src
 cd src
 touch index.js
-touch hello.js
+touch name.js
 touch webpack.config.js
 ```   
 编辑webpack.config.js添加基础的配置：   
@@ -56,5 +56,13 @@ import helloWebpack from './name'
 alert(helloWebpack)
 ```
 编辑hello.js
-
+```javascript
+export default (name = 'helloWebpack')
+```
+编辑package.json中的script选项
+```javascript
+"scripts": {
+    "build": "webpack --mode "
+  },
+```
 
