@@ -49,6 +49,12 @@ module.export = {
         filename:'bundle.js'
     }
 }
+```   
+编辑index.js
+```javascript
+import helloWebpack from './name'
+alert(helloWebpack)
 ```
+编辑hello.js
 
 
