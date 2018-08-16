@@ -150,4 +150,16 @@ module.exports = {
 ```shell
 npm run dev
 ```  
-等在终端看到`Compiled successfully`，打开浏览器，然后访问`localhost8080`
+等在终端看到`Compiled successfully`，打开浏览器，然后访问`localhost8080`,就会看到一个弹出框。那么一切就都成了。html有了，接下来要配置css的打包。   
+### 对css文件加载的支持   
+在做这个之前，需要明白一个前置知识，那就是webpack 的loader。首先把css要用到的loader先按上。
+```javascript
+npm install -D css-loader style-loader
+```   
+#### 什么是loader？   
+loader相当于是一个转化器，它可以让webpack把不同的文件转化成统一的文件进行输出。比如jsx转成js，scss转成css等等。   
+#### loader的3中写法   
+1. loader 
+```javascript
+ 
+```
