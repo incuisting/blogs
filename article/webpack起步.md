@@ -62,7 +62,92 @@ export default (name = 'helloWebpack')
 编辑package.json中的script选项
 ```javascript
 "scripts": {
-    "build": "webpack --mode "
+    "build": "webpack"
   },
+```   
+打开了终端:    
+```shell
+npm run build
+```   
+经过一顿编译之后，就会发现在`dist`目录下多了一个`bundel.js`的打包文件。不过打开来，会发现它是一个经过压缩的文件。然后把镜头转到终端。有如下一段文字    
 ```
+WARNING in configuration
+The 'mode' option has not been set, webpack will fallback to 'production' for this value. Set 'mode' option to 'development' or 'production' to enable defaults for each environment.
+You can also set it to 'none' to disable any default behavior. Learn more: https://webpack.js.org/concepts/mode/
+```    
+意思就是，你没有加`mode`选项，所以`webpack`默认给你打包成**生产模式**了。也就是代码自动给你压缩了。如果要不压缩，那就加把`mode` 选项设置成 `development`。   
+编辑package.json中的script选项
+```javascript
+"scripts": {
+    "build": "webpack --mode development"
+  },
+```   
+然后再打包的代码就不是压缩代码了。    
+接下去为这个项目配置，本地开发服务器   
+### 本地开发服务器   
+首先安装一下：   
+```javascript
+npm install -D webpack-dev-server 
+```   
+安装完毕之后，开始配置webpack.config.js:   
+```javascript
+ devServer:{
+        contentBase:path.resolve(__dirname,'dist'),
+        host:'localhost',
+        compress:true,
+        port:8080
+ }
+```    
+在配置文件中添加以上配置，各项配置具体参数意思如下：   
+- contentBase 配置开发服务运行时的文件根目录
+- host：开发服务器监听的主机地址
+- compress 开发服务器是否启动gzip等压缩
+- port：开发服务器监听的端口
 
+然后编辑package.json中的script选项
+```javascript
+"scripts": {
+    "build": "webpack --mode production",
+    "dev": "webpack-dev-server --mode development"
+  }
+```    
+其实到着一部，就已经可以`npm run dev`启动本地服务了，不过这里还是要多做一步，把`HtmlWebpackPlugin`插件也配置起来。这样等等就是可以直接看到页面了。   
+首先还是要安装一下：   
+```
+npm install -D html-webpack-plugin
+```
+然后打开webapck.config.js:
+```javascript
+//最上面引入模块
+const HtmlWebpackPlugin = require('html-webpack-plugin')
+//编辑module.exports = {}
+module.exports = {
+    //...省略前部分
+     plugins: [
+    new HtmlWebpackPlugin({
+      template: path.resolve(__dirname, 'src/index.html'),
+      filename: 'index.html'
+    })
+  ]
+```
+为配置文件添加了`plugins`参数，插件的添加方式是在数据里`new`一下然后传入配置。这里的`template`就是模板的意思，`webpack`就会根据这个`html`文件的格式去插入编译好的`js文件`。`filename`就是最后这个`html`编译好输出的名字。   
+差点忘了在src下生成一个index.html文件：   
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+<body>
+    
+</body>
+</html>
+```
+好了现在万事俱备，打开终端：   
+```shell
+npm run dev
+```  
+等在终端看到`Compiled successfully`，打开浏览器，然后访问`localhost8080`
