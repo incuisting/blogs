@@ -4,13 +4,23 @@ module.exports = {
   entry: './src/index.js',
   output: {
     path: path.resolve(__dirname, 'dist'),
-    filename: 'bundel.js'
+    filename: 'bundle.js'
   },
   devServer: {
     contentBase: path.resolve(__dirname, 'dist'),
     host: 'localhost',
     compress: true,
     port: 8080
+  },
+  module: {
+    rules: [
+      {
+        test: /\.css$/,
+        use: ['style-loader', 'css-loader'],
+        exclude: /node_modules/,
+        include: path.resolve(__dirname, 'src')
+      }
+    ]
   },
   plugins: [
     new HtmlWebpackPlugin({
