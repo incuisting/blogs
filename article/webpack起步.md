@@ -210,7 +210,7 @@ npm install -D css-loader style-loader
 
 loader 相当于是一个转化器，它可以让 webpack 把不同的文件转化成统一的文件进行输出。比如 jsx 转成 js，scss 转成 css 等等。
 
-#### loader 的 3 中写法
+#### loader 的 3 种写法
 
 1. loader
 
@@ -311,4 +311,23 @@ alert(helloWebpack)
 现在打开`localhost:8080` 看一下效果,可以看到一个红色的`css-loader test`   
 简要的讲了一下loader之后，在回过头来看一些plugin
 ### plugin   
+先前为了能自动产出html，使用过一个html-webpack-plugin的插件，当时只是简单的配置了一下，现在稍微深入一点讲一件，webpack中的plugin是什么。   
+首先在`webpack`的构建流程中，`plugin`的定位是用于处理一些loader职责之外的事情。
+loader前面说过主要负责模块代码转换的工作，那么除此之外的其他任何工作都可以交由`plugin`来完成.   
+就拿html-webpack-plugin来说，它就可以自动根据html模板去生产html，并且把编译好的js插入到里面。先去对这个插件做了简单的配置，但是它引入的资源文件名字都是固定不会变的，会引起浏览器的缓存。不过可以该插件可以通过配置避免这个问题。   
+```JavaScript
+plugins: [
+        new HtmlWebpackPlugin({
+        hash: true,
+        template: './src/index.html',
+        filename:'index.html'
+  })]
+```   
+这样一来，html引入的js文件名字里每次都会自动加入一段hash值。浏览器就不会因为文件民相同而导致缓存了。   
+图片在前段中也是很重要的一个环节，所以接下去配置webpack对图片的支持。   
+### 图片   
+在webpack中使用`file-loader`和`url-loader`这两个loader来处理图片。其中 `file-loader`解决CSS等文件中的引入图片路径问题。
+`url-loader` 则是当图片小于limit的时候会把图片BASE64编码，大于limit参数的时候还是使用`file-loader` 进行拷贝。   
+#### 先解决在JS中引入图片的问题   
+  
 
