@@ -307,4 +307,8 @@ import helloWebpack from './name'
 import './index.css'
 alert(helloWebpack)
 ```
-现在打开`localhost:8080` 看一下效果
+
+现在打开`localhost:8080` 看一下效果,可以看到一个红色的`css-loader test`   
+简要的讲了一下loader之后，在回过头来看一些plugin
+### plugin   
+
