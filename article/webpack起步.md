@@ -262,7 +262,7 @@ module: {
 }
 ```
 
-解释以下上诉各类参数的意思：
+解释一下上面各类参数的意思：
 
 - test：匹配处理文件的扩展名的正则表达式
 - use：loader 名称，就是你要使用模块的名称
@@ -296,25 +296,28 @@ body {
 
 ```html
 <body>
-   <div>css-loader test</div>
+   <div id='root'></div>
 </body>
 ```
 
-在 index.js 中引入一下 css 文件
+编辑 index.js
 
 ```javascript
 import helloWebpack from './name'
 import './index.css'
-alert(helloWebpack)
+document.querySelector('#root').innerHTML = helloWebpack
 ```
 
-现在打开`localhost:8080` 看一下效果,可以看到一个红色的`css-loader test`   
-简要的讲了一下loader之后，在回过头来看一些plugin
-### plugin   
-先前为了能自动产出html，使用过一个html-webpack-plugin的插件，当时只是简单的配置了一下，现在稍微深入一点讲一件，webpack中的plugin是什么。   
-首先在`webpack`的构建流程中，`plugin`的定位是用于处理一些loader职责之外的事情。
-loader前面说过主要负责模块代码转换的工作，那么除此之外的其他任何工作都可以交由`plugin`来完成.   
-就拿html-webpack-plugin来说，它就可以自动根据html模板去生产html，并且把编译好的js插入到里面。先去对这个插件做了简单的配置，但是它引入的资源文件名字都是固定不会变的，会引起浏览器的缓存。不过可以该插件可以通过配置避免这个问题。   
+现在打开`localhost:8080` 看一下效果,可以看到红色的字了  
+简要的讲了一下 loader 之后，在回过头来看一些 plugin
+
+### plugin
+
+先前为了能自动产出 html，使用过一个 html-webpack-plugin 的插件，当时只是简单的配置了一下，现在稍微深入一点讲一件，webpack 中的 plugin 是什么。  
+首先在`webpack`的构建流程中，`plugin`的定位是用于处理一些 loader 职责之外的事情。
+loader 前面说过主要负责模块代码转换的工作，那么除此之外的其他任何工作都可以交由`plugin`来完成.  
+就拿 html-webpack-plugin 来说，它就可以自动根据 html 模板去生产 html，并且把编译好的 js 插入到里面。先去对这个插件做了简单的配置，但是它引入的资源文件名字都是固定不会变的，会引起浏览器的缓存。不过可以该插件可以通过配置避免这个问题。
+
 ```JavaScript
 plugins: [
         new HtmlWebpackPlugin({
@@ -322,12 +325,317 @@ plugins: [
         template: './src/index.html',
         filename:'index.html'
   })]
-```   
-这样一来，html引入的js文件名字里每次都会自动加入一段hash值。浏览器就不会因为文件民相同而导致缓存了。   
-图片在前段中也是很重要的一个环节，所以接下去配置webpack对图片的支持。   
-### 图片   
-在webpack中使用`file-loader`和`url-loader`这两个loader来处理图片。其中 `file-loader`解决CSS等文件中的引入图片路径问题。
-`url-loader` 则是当图片小于limit的时候会把图片BASE64编码，大于limit参数的时候还是使用`file-loader` 进行拷贝。   
-#### 先解决在JS中引入图片的问题   
-  
+```
 
+这样一来，html 引入的 js 文件名字里每次都会自动加入一段 hash 值。浏览器就不会因为文件民相同而导致缓存了。  
+图片在前段中也是很重要的一个环节，所以接下去配置 webpack 对图片的支持。
+
+### 图片
+
+在 webpack 中使用`file-loader`和`url-loader`这两个 loader 来处理图片。其中 `file-loader`解决 CSS 等文件中的引入图片路径问题。
+`url-loader` 则是当图片小于 limit 的时候会把图片 BASE64 编码，大于 limit 参数的时候还是使用`file-loader` 进行拷贝。
+
+#### 先解决在 JS 中引入图片的问题
+
+先去整张图，我这里扒了一张 google 的 logo 放在 src 下的 images 文件夹  
+在 index.js 文件中引入图片：
+
+```javascript
+// 省略部分代码
+import google from './images/google.png'
+let img = new Image()
+img.src = google
+document.body.appendChild(img)
+```
+
+配置 webpack.config.js
+
+```javascript
+// ...省略
+module: {
+  rulues: [
+    //...省略
+    {
+      test: /\.(jpg|png|bmp|gif|svg|ttf|woff|woff2|eot)/,
+      use: [
+        {
+          loader: 'url-loader',
+          options: {
+            //小于这个大小的图片会变成base64 格式
+            limit: 4096
+          }
+        }
+      ]
+    }
+  ]
+}
+```
+
+打开页面看一看。是否出现了一个 google 的 logo.  
+既然已经配置了好了，那么也试一下用 css 的方式引入图片是否也同样可以。  
+编辑 index.html:
+
+```html
+<body>
+    <div id='root'></div>
+    <div class='img'></div>
+</body>
+```
+
+编辑 index.css:
+
+```css
+.img {
+  width: 271px;
+  height: 92px;
+  background-image: url(./images/google.png);
+}
+```
+
+在打开浏览器，会发现又多了一个 google 的 logo。
+现在的 css 还在通过 js 插入到 html 的 header 里面的。接下去配置 webpack 让 css 单独被引入进来。
+
+### 分离 css
+
+要做到分离 css，需要用到一个插件。`mini-css-extract-plugin`.
+首先还是按照管理安装一下：
+
+```shell
+npm install --save-dev mini-css-extract-plugin
+```
+
+安装完毕之后，更新 webpack.config.js 的配置：
+
+```javascript
+const MiniCssExtractPlugin = require('mini-css-extract-plugin')
+
+module:{
+  rule:[
+    {
+        test: /\.css$/,
+        use: [
+          {
+            loader: MiniCssExtractPlugin.loader
+          },
+          'css-loader'
+        ],
+        exclude: /node_modules/,
+        include: path.resolve(__dirname, 'src')
+      }
+      //...省略没有变动代码
+  ]
+},
+plugins:[
+  //...省略没有变动代码
+new MiniCssExtractPlugin({
+      filename: '[name].css',//打包入口文件
+      chunkFilename:'[id].css'//用来打包import('module')方法中引入的模块
+    })
+]
+```
+
+重新把`npm run dev`跑一下。用审查元素可以明显的看到 css 是通过 link 标签引入的。  
+把 css 被单独引入之后，就是压缩 css 和 js 了。  
+这里我们需要用到两个插件来做这件事情。`uglifyjs-webpack-plugin`和`optimize-css-assets-webpack-plugin`  
+惯例安装一下插件：
+
+```shell
+npm install -D uglifyjs-webpack-plugin optimize-css-assets-webpack-plugin
+```
+
+再去更新 webpack.config.js:
+
+```javascript
+const UglifyJSplugin = require('uglifyjs-webpack-plugin')
+const OptimizeCssAssetsWebpackPlugin = require('optimize-css-assets-webpack-plugin')
+//...省略没有变动的代码
+ optimization: {
+    minimizer: [
+      new UglifyJSplugin({
+        cache: true, //启用缓存
+        parallel: true, // 使用多进程运行改进编译速度
+        sourceMap: true //生成sourceMap映射文件
+      }),
+      new OptimizeCssAssetsWebpackPlugin({})
+    ]
+  },
+```
+
+顺带说一下`optimization`选项是 webpack4 新增加的。  
+配置好了，`npm run build` 跑一下试一下看看，看看 dist 目录下打包出来的 css 文件是不是都变到了一行。
+再接下去就是把 css 和 images 打包后单独放到一个文件夹。  
+编辑 webpack.config.js 对下列熟悉做修改:
+
+```javascript
+  output: {
+    path: path.resolve(__dirname, 'dist'),
+    filename: 'bundle.js',
+    publicPath: '/'
+  },
+  module: {
+    // ......
+    rules: [
+      {
+        test: /\.(jpg|png|bmp|gif|svg|ttf|woff|woff2|eot)/,
+        use: [
+          {
+            loader: 'url-loader',
+            options: {
+              //小于这个大小的图片会变成base64 格式
+              limit: 4096,
+              outputPath: 'images',
+              publicPath: '/images'
+            }
+          }
+        ]
+      }
+    ]
+  },
+  //......
+  plugins: [
+    //.....
+    new MiniCssExtractPlugin({
+      filename: 'css/[name].css',
+      hunkFilename: 'css/[id].css'
+    })
+  ]
+```
+
+修改完之后，`npm run build` 就可以发现打包出来的文件已经把 css 和 images 单独放到了一个文件夹里。  
+这里还有一个关于图片配置补充一下，就是在处理在 html 中引入的图片。处理这件事情主要依赖于一个 loader。`html-withing-loader`
+先安装一下：
+
+```shell
+npm install -D html-withimg-loader
+```
+
+编辑 html 文件，增加一 img 标签引入图片：
+
+```html
+<img src="./images/google.png"/>
+```
+
+配置 webpack.config.js,增加一个 loader 处理:
+
+```javascript:
+module: {
+  rules: [
+    //......
+    {
+      test: /\.(html|htm)$/,
+      use: 'html-withimg-loader'
+    }
+  ]
+}
+```
+
+再运行`npm run dev` 打开浏览器就可以看到 3 张 google 的 logo 了.
+
+### 编译 less 和 sass
+
+安装 less 和 sass 以及 loader：
+
+```shell
+npm install -D less less-loader node-sass sass-loader
+```
+
+配置 webpack.config.js,增加新的 loader：
+
+```javscript
+{
+        test: /\.less/,
+        include: path.resolve(__dirname,'src'),
+        exclude: /node_modules/,
+        use: [{
+            loader: MiniCssExtractPlugin.loader,
+        },'css-loader','less-loader']
+    },
+    {
+        test: /\.scss/,
+        include: path.resolve(__dirname,'src'),
+        exclude: /node_modules/,
+        use: [{
+            loader: MiniCssExtractPlugin.loader,
+        },'css-loader','sass-loader']
+    },
+```
+
+创建用于测试的 css 和 less：
+src/less.js:
+
+```less
+@color: orange;
+.less-container {
+  color: @color;
+}
+```
+
+src/sass.scss:
+
+```scss
+$color: green;
+.sass-container {
+  color: green;
+}
+```
+
+在 index.js 中引入一下:
+
+```js
+import './less.less'
+import './sass.scss'
+```
+
+在 index.html 中加入测试 dom:
+
+```html
+    <div class="less-container">less</div>
+    <div class="sass-container">sass</div>
+```
+
+`npm run dev` 查看一下,可以看到浏览器里 less 是橙色,sass 是绿色
+
+### 处理 css 属性前缀
+
+为了浏览器的兼容性，有时候我们必须加入-webkit,-ms,-o,-moz 这些前缀,当然可能手动加,这辈子是不可能手动加的.  
+安装
+
+```
+npm install -D postcss-loader autoprefixer
+```
+
+在根目录下创建 postcss.config.js:
+
+```js
+module.exports = {
+  plugins: [require('autoprefixer')]
+}
+```
+
+配置 webapck.config.js 修改 css 的 loader:
+
+```javascript
+    {
+        test: /\.css$/,
+        use: [
+          {
+            loader: MiniCssExtractPlugin.loader
+          },
+          'css-loader',
+          'postcss-loader'
+        ],
+        exclude: /node_modules/,
+        include: path.resolve(__dirname, 'src')
+      },
+```
+修改index.css,添加一个需要被添加前缀的属性:
+```css
+.img {
+  width: 271px;
+  height: 92px;
+  background-image: url(./images/google.png);
+  transform: rotate(10deg);
+  /* 添加 transform 该属性被加前缀 */
+}
+```
+`npm run dev` 浏览器中审查原生,可以发现transform已经被加了前缀
