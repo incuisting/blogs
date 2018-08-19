@@ -1,8 +1,10 @@
 const path = require('path')
+const webpack = require('webpack')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const MiniCssExtractPlugin = require('mini-css-extract-plugin')
 const UglifyJSplugin = require('uglifyjs-webpack-plugin')
 const OptimizeCssAssetsWebpackPlugin = require('optimize-css-assets-webpack-plugin')
+const CopyWebpackPlugin = require('copy-webpack-plugin')
 module.exports = {
   entry: './src/index.js',
   output: {
@@ -10,6 +12,16 @@ module.exports = {
     filename: 'bundle.js',
     publicPath: '/'
   },
+  watch: true,
+  watchOptions: {
+    ignored: /node_modules/, //忽略不用监听变更的目录
+    poll: 1000, //每秒询问的文件变更的次数
+    aggregateTimeout: 500 //防止重复保存频繁重新编译,500毫秒内重复保存不打包
+  },
+  // devtool:'source-map' //把映射文件生成到单独的文件，最完整最慢
+  // devtool:'cheap-module-source-map' // 在一个单独的文件中产生一个不带列映射的Map
+  devtool: 'eval-source-map', //使用eval打包源文件模块,在同一个文件中生成完整sourcemap
+  // devtool:'cheap-module-eval-source-map' //ourcemap和打包后的JS同行显示，没有映射列
   devServer: {
     contentBase: path.resolve(__dirname, 'dist'),
     host: 'localhost',
@@ -18,6 +30,18 @@ module.exports = {
   },
   module: {
     rules: [
+      {
+        test: /\.jsx?$/,
+        use: {
+          loader: 'babel-loader',
+          options: {
+            presets: ['env', 'stage-0', 'react'],
+            plugins: ['transform-decorators-legacy']
+          }
+        },
+        include: path.join(__dirname, 'src'),
+        exclude: /node_modules/
+      },
       {
         test: /\.css$/,
         use: [
@@ -93,6 +117,13 @@ module.exports = {
     new MiniCssExtractPlugin({
       filename: 'css/[name].css',
       hunkFilename: 'css/[id].css'
-    })
+    }),
+    new webpack.BannerPlugin('webpackTest'),
+    new CopyWebpackPlugin([
+      {
+        from: path.resolve(__dirname, 'src/assets'), //静态资源目录源地址
+        to: path.resolve(__dirname, 'dist/assets') //目标地址，相对于output的path目录
+      }
+    ])
   ]
 }

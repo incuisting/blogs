@@ -628,7 +628,9 @@ module.exports = {
         include: path.resolve(__dirname, 'src')
       },
 ```
-修改index.css,添加一个需要被添加前缀的属性:
+
+修改 index.css,添加一个需要被添加前缀的属性:
+
 ```css
 .img {
   width: 271px;
@@ -638,4 +640,101 @@ module.exports = {
   /* 添加 transform 该属性被加前缀 */
 }
 ```
-`npm run dev` 浏览器中审查原生,可以发现transform已经被加了前缀
+
+`npm run dev` 浏览器中审查元素,可以发现 transform 已经被加了前缀
+
+### 转义 ES6/ES7/JSX
+
+需要支持这项功能，需要引入很多 loader 和 plugin。所以先安一波。
+
+```shell
+npm install -D babel-core babel-loader babel-preset-env babel-preset-stage-0 babel-preset-react babel-plugin-transform-decorators-legacy
+```
+
+配置 webpack.config.js,增加一个 loader：
+
+```js
+{
+    test: /\.jsx?$/,
+    use: {
+        loader: 'babel-loader',
+        options: {
+            presets: ["env","stage-0","react"],
+            plugins:["transform-decorators-legacy"]
+        }
+    },
+    include: path.join(__dirname,'src'),
+    exclude:/node_modules/
+}
+```
+
+### 调试打包后的代码
+
+webpack 通过配置可以自动给我们 source maps 文件，map 文件是一种对应编译文件和源文件的方法
+
+- `source-map` 把映射文件生成到单独的文件，最完整最慢
+- `cheap-module-source-map` 在一个单独的文件中产生一个不带列映射的 Map
+- `eval-source-map` 使用 eval 打包源文件模块,在同一个文件中生成完整 sourcemap
+- `cheap-module-eval-source-map` sourcemap 和打包后的 JS 同行显示，没有映射列
+  配置 webpack.config.js,添加 devtool 属性：
+
+```js
+devtool: 'eval-source-map'
+```
+
+### watch
+
+当代码发生修改后可以自动重新编译
+
+```js
+watch: true,
+watchOptions: {
+    ignored: /node_modules/, //忽略不用监听变更的目录
+    poll:1000, //每秒询问的文件变更的次数
+    aggregateTimeout: 500, //防止重复保存频繁重新编译,500毫秒内重复保存不打包
+}
+```
+
+- `webpack`定时获取文件的更新时间，并跟上次保存的时间进行比对，不一致就表示发生了变化,`poll`就用来配置每秒问多少次
+- 当检测文件不再发生变化，会先缓存起来，等待一段时间后之后再通知监听者，这个等待时间通过`aggregateTimeout`配置,类似于节流函数的功能
+- `webpack`只会监听`entry`依赖的文件
+- 我们需要尽可能减少需要监听的文件数量和检查频率，当然频率的降低会导致灵敏度下降
+
+### 编译后文件 banner
+
+在 webpack.config.js 的 plugins 里加入下面这个插件
+
+```js
+const webpack = require('webpack')
+plugins: [
+  //....
+  new webpack.BannerPlugin('webpackTest')
+]
+```
+
+### 拷贝静态文件
+
+有时项目中没有引用的文件(比如一些文档，设计稿等等)也需要打包到目标目录，这里通过`copy-webpack-plugin`实现。
+安装
+
+```shell
+npm install -D copy-webpack-plugin
+```
+
+配置 webpack.config.js,添加插件：
+
+```js
+const CopyWebpackPlugin = require('copy-webpack-plugin')
+plugins: [
+  //....
+  new CopyWebpackPlugin([
+    {
+      from: path.resolve(__dirname, 'src/assets'), //静态资源目录源地址
+      to: path.resolve(__dirname, 'dist/assets') //目标地址，相对于output的path目录
+    }
+  ])
+]
+```
+
+### 服务器代理   
+
