@@ -9,3 +9,5 @@ loader 的原则
 其中的工具库的作用
 
 介绍loader几个主要的api
+pitch是一个难点
+loader实战 一到两个
